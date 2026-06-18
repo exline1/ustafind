@@ -1,4 +1,4 @@
-import type { Usta, Equipment, Booking, Category, Testimonial, Review, Service } from '../types';
+import type { Usta, Equipment, Booking, Category, Testimonial, Review } from '../types';
 
 // ==========================================
 // KATEGORIYALAR

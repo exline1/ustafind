@@ -17,15 +17,15 @@ export default function Tabs({ tabs, activeTab, onTabChange, className = '' }: T
   };
 
   return (
-    <div className={`flex bg-gray-100 rounded-xl p-1 ${className}`}>
+    <div className={`flex bg-gray-light/60 rounded-xl p-1 ${className}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => handleChange(tab.id)}
-          className={`flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition-all duration-200 ${
+          className={`flex-1 py-2.5 px-4 min-h-[44px] text-xs font-semibold rounded-lg uppercase tracking-wide transition-all duration-300 ease-in-out ${
             currentTab === tab.id
-              ? 'bg-brand-dark text-white shadow-md'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-brand-dark text-white shadow-sm'
+              : 'text-gray-muted hover:text-brand-dark bg-transparent'
           }`}
         >
           {tab.label}

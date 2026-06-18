@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import AdminSidebar from './components/layout/AdminSidebar';
+import PageTransition from './components/layout/PageTransition';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import RoleSelectPage from './pages/RoleSelectPage';
@@ -18,12 +19,21 @@ import AllUsers from './pages/admin/AllUsers';
 import AllBookings from './pages/admin/AllBookings';
 import EquipmentManagement from './pages/admin/EquipmentManagement';
 
+function AnimatedOutlet() {
+  const location = useLocation();
+  return (
+    <PageTransition key={location.pathname}>
+      <Outlet />
+    </PageTransition>
+  );
+}
+
 function MainLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1">
-        <Outlet />
+        <AnimatedOutlet />
       </main>
       <Footer />
     </div>
@@ -32,9 +42,9 @@ function MainLayout() {
 
 function AuthLayout() {
   return (
-    <>
+    <PageTransition>
       <Outlet />
-    </>
+    </PageTransition>
   );
 }
 
@@ -48,8 +58,8 @@ function AdminLayout() {
       <Navbar />
       <div className="flex flex-1">
         <AdminSidebar />
-        <main className="flex-1 p-6 md:p-8 bg-gray-50">
-          <Outlet />
+        <main className="flex-1 p-4 md:p-8 bg-gray-light pb-20 md:pb-8">
+          <AnimatedOutlet />
         </main>
       </div>
     </div>
@@ -60,7 +70,7 @@ function ProtectedRoute() {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-light">
         <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -74,7 +84,6 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Main Layout */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/ustalar" element={<UstalarListPage />} />
@@ -82,20 +91,17 @@ function App() {
             <Route path="/texnika" element={<EquipmentListPage />} />
             <Route path="/texnika/:id" element={<EquipmentDetailPage />} />
 
-            {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/ustalar/:id/booking" element={<BookingPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
             </Route>
           </Route>
 
-          {/* Auth Layout (no navbar/footer) */}
           <Route element={<AuthLayout />}>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/auth/role-select" element={<RoleSelectPage />} />
           </Route>
 
-          {/* Admin Layout */}
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/arizalar" element={<PendingRequests />} />
@@ -104,7 +110,6 @@ function App() {
             <Route path="/admin/texnikalar" element={<EquipmentManagement />} />
           </Route>
 
-          {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

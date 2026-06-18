@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Users as UsersIcon } from 'lucide-react';
+import { MagnifyingGlass, Users } from '@phosphor-icons/react';
 import Card from '../../components/ui/Card';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
@@ -16,35 +16,42 @@ export default function AllUsers() {
     setUsers(getAllUsers());
   }, []);
 
-  const filtered = users.filter(u => {
-    const matchSearch = !search || u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
+  const filtered = users.filter((u) => {
+    const matchSearch =
+      !search ||
+      u.name.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = !roleFilter || u.role === roleFilter;
     return matchSearch && matchRole;
   });
 
   const roleBadge = (role: string) => {
     switch (role) {
-      case 'admin': return <Badge variant="info">Admin</Badge>;
-      case 'usta_approved': return <Badge variant="success">Usta</Badge>;
-      case 'usta_pending': return <Badge variant="warning">Kutilmoqda</Badge>;
-      default: return <Badge variant="neutral">Mijoz</Badge>;
+      case 'admin':
+        return <Badge variant="info">Admin</Badge>;
+      case 'usta_approved':
+        return <Badge variant="success">Usta</Badge>;
+      case 'usta_pending':
+        return <Badge variant="warning">Kutilmoqda</Badge>;
+      default:
+        return <Badge variant="neutral">Mijoz</Badge>;
     }
   };
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-gray-900 mb-6">Barcha foydalanuvchilar</h1>
+      <h1 className="text-2xl font-bold text-brand-dark mb-6 tracking-tight">Barcha foydalanuvchilar</h1>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-muted" weight="bold" />
           <input
             type="text"
             placeholder="Ism yoki email bo'yicha qidirish..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+            className="w-full pl-10 pr-4 py-2.5 min-h-[44px] rounded-lg border-[1.5px] border-gray-light bg-white text-sm focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand-light/40 transition-all duration-300"
+            aria-label="Foydalanuvchi qidirish"
           />
         </div>
         <Select
@@ -57,49 +64,69 @@ export default function AllUsers() {
           placeholder="Barcha rollar"
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="!py-2.5 !w-44"
+          className="!py-2.5 !w-44 !min-h-[44px]"
         />
       </div>
 
       {filtered.length > 0 ? (
-        <Card hover={false} padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-400 uppercase">Foydalanuvchi</th>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-400 uppercase">Email</th>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-400 uppercase">Rol</th>
-                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-400 uppercase">Ro'yxatdan o'tgan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={user.name} size="sm" />
-                        <span className="font-medium text-gray-900 text-sm">{user.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{user.email}</td>
-                    <td className="px-6 py-4">{roleBadge(user.role)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{user.registeredAt}</td>
+        <>
+          <div className="hidden md:block">
+            <Card hover={false} padding="none">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-light">
+                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-muted uppercase">Foydalanuvchi</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-muted uppercase">Email</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-muted uppercase">Rol</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold text-gray-muted uppercase">Ro&apos;yxatdan o&apos;tgan</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map((user) => (
+                    <tr key={user.id} className="border-b border-gray-light hover:bg-brand-light/5 transition-colors duration-300">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={user.name} size="sm" />
+                          <span className="font-medium text-brand-dark text-sm">{user.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-muted">{user.email}</td>
+                      <td className="px-6 py-4">{roleBadge(user.role)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-muted">{user.registeredAt}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
           </div>
-        </Card>
+
+          <div className="md:hidden space-y-3">
+            {filtered.map((user) => (
+              <Card key={user.id} hover={false}>
+                <div className="flex items-center gap-3">
+                  <Avatar name={user.name} size="md" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-brand-dark truncate">{user.name}</p>
+                    <p className="text-sm text-gray-muted truncate">{user.email}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      {roleBadge(user.role)}
+                      <span className="text-xs text-gray-muted">{user.registeredAt}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
       ) : (
         <Card hover={false} className="text-center !py-16">
-          <UsersIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Foydalanuvchilar topilmadi</h3>
-          <p className="text-gray-500">Qidiruv yoki filtrlarni o'zgartiring</p>
+          <Users className="w-16 h-16 text-gray-light mx-auto mb-4" weight="thin" />
+          <h3 className="text-xl font-bold text-brand-dark mb-2">Foydalanuvchilar topilmadi</h3>
+          <p className="text-gray-muted">Qidiruv yoki filtrlarni o&apos;zgartiring</p>
         </Card>
       )}
 
-      <p className="text-sm text-gray-400 mt-4">Jami: {filtered.length} ta foydalanuvchi</p>
+      <p className="text-sm text-gray-muted mt-4">Jami: {filtered.length} ta foydalanuvchi</p>
     </div>
   );
 }

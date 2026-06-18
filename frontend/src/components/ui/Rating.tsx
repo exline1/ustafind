@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star } from '@phosphor-icons/react';
 
 interface RatingProps {
   value: number;
@@ -27,7 +27,7 @@ export default function Rating({
 }: RatingProps) {
   return (
     <div className="flex items-center gap-1.5">
-      <div className="flex gap-0.5">
+      <div className="flex gap-0.5" aria-label={`Reyting: ${value} dan ${max}`}>
         {Array.from({ length: max }, (_, i) => {
           const filled = i < Math.floor(value);
           const half = !filled && i < value;
@@ -38,27 +38,21 @@ export default function Rating({
               type="button"
               disabled={!interactive}
               onClick={() => interactive && onChange?.(i + 1)}
-              className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
+              className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform duration-300`}
+              aria-label={`${i + 1} yulduz`}
             >
               <Star
-                className={`${sizeMap[size]} ${
-                  filled
-                    ? 'fill-yellow-400 text-yellow-400'
-                    : half
-                    ? 'fill-yellow-200 text-yellow-400'
-                    : 'fill-gray-200 text-gray-200'
-                }`}
+                weight={filled || half ? 'fill' : 'regular'}
+                className={`${sizeMap[size]} ${filled || half ? 'text-rating' : 'text-gray-light'}`}
               />
             </button>
           );
         })}
       </div>
       {showValue && (
-        <span className="text-sm font-semibold text-gray-700">{value.toFixed(1)}</span>
+        <span className="text-sm font-semibold text-brand-dark">{value.toFixed(1)}</span>
       )}
-      {count !== undefined && (
-        <span className="text-sm text-gray-400">({count})</span>
-      )}
+      {count !== undefined && <span className="text-sm text-gray-muted">({count})</span>}
     </div>
   );
 }

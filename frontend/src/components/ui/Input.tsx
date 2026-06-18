@@ -1,5 +1,5 @@
 import { type InputHTMLAttributes, useState, forwardRef } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeSlash } from '@phosphor-icons/react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -15,35 +15,36 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            {label}
-          </label>
+          <label className="block text-sm font-medium text-brand-dark mb-1.5">{label}</label>
         )}
-        <div className="relative">
+        <div className="relative group">
           {icon && (
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-muted group-focus-within:text-brand transition-colors duration-300">
               {icon}
             </span>
           )}
           <input
             ref={ref}
             type={isPassword && showPassword ? 'text' : type}
-            className={`w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-all duration-200 ${icon ? 'pl-10' : ''} ${isPassword ? 'pr-10' : ''} ${error ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : ''} ${className}`}
+            className={`w-full px-4 py-3 min-h-[44px] rounded-lg border-[1.5px] border-gray-light bg-white text-gray-900 placeholder-gray-muted focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand-light/40 transition-all duration-300 ease-in-out ${icon ? 'pl-10' : ''} ${isPassword ? 'pr-10' : ''} ${error ? 'border-danger focus:ring-danger/20 focus:border-danger' : ''} ${className}`}
             {...props}
           />
           {isPassword && (
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-muted hover:text-brand transition-colors duration-300"
+              aria-label={showPassword ? 'Parolni yashirish' : 'Parolni ko\'rsatish'}
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? (
+                <EyeSlash className="w-5 h-5" weight="regular" />
+              ) : (
+                <Eye className="w-5 h-5" weight="regular" />
+              )}
             </button>
           )}
         </div>
-        {error && (
-          <p className="mt-1.5 text-sm text-red-500">{error}</p>
-        )}
+        {error && <p className="mt-1.5 text-sm text-danger">{error}</p>}
       </div>
     );
   }

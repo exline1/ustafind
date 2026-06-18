@@ -1,15 +1,102 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+  --color-brand-light: #5aff91;
+  --color-brand: #3eb265;
+  --color-brand-dark: #2d7f48;
+  --color-gray-muted: #6b7280;
+  --color-gray-light: #f3f4f6;
+  --color-rating: #f59e0b;
+  --color-danger: #ef4444;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --background-image-gradient-brand: linear-gradient(135deg, #5aff91 0%, #2d7f48 100%);
+  --background-image-gradient-brand-hero: linear-gradient(135deg, #2d7f48 0%, #3eb265 100%);
+  --background-image-gradient-brand-subtle: linear-gradient(180deg, rgb(90 255 145 / 0.05) 0%, #ffffff 100%);
+  --background-image-gradient-section-dark: linear-gradient(135deg, #2d7f48 0%, #3eb265 100%);
+}
 
 @layer base {
   body {
-    @apply font-sans bg-neutral-50 text-neutral-900;
+    @apply font-sans bg-white text-gray-900 antialiased;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans tracking-tight;
   }
+}
+
+@layer utilities {
+  .bg-gradient-brand {
+    background-image: var(--background-image-gradient-brand);
+  }
+
+  .bg-gradient-brand-hero {
+    background-image: var(--background-image-gradient-brand-hero);
+  }
+
+  .bg-gradient-brand-subtle {
+    background-image: var(--background-image-gradient-brand-subtle);
+  }
+
+  .bg-gradient-section-dark {
+    background-image: var(--background-image-gradient-section-dark);
+  }
+
+  .clip-hero-diagonal {
+    clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+  }
+
+  .glass-card {
+    @apply bg-white/90 backdrop-blur-sm border border-white/40 shadow-md;
+  }
+
+  .glass-card-dark {
+    @apply bg-white/15 backdrop-blur-sm border border-white/30 shadow-md;
+  }
+
+  .skeleton-pulse {
+    @apply bg-gray-light animate-pulse;
+  }
+
+  .nav-link-underline {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-brand after:transition-all after:duration-300 hover:after:w-full;
+  }
+
+  .masonry-gallery {
+    columns: 2;
+    column-gap: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .masonry-gallery {
+      columns: 3;
+    }
+  }
+
+  .masonry-gallery > * {
+    break-inside: avoid;
+    margin-bottom: 0.75rem;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }

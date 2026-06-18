@@ -1,26 +1,38 @@
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+  variant?: 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'category' | 'rating';
   size?: 'sm' | 'md';
   className?: string;
 }
 
 const variantClasses: Record<string, string> = {
-  success: 'bg-green-100 text-green-800 border-green-200',
-  warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  danger: 'bg-red-100 text-red-800 border-red-200',
-  info: 'bg-blue-100 text-blue-800 border-blue-200',
-  neutral: 'bg-gray-100 text-gray-700 border-gray-200',
+  success: 'bg-brand-light text-brand-dark',
+  warning: 'bg-rating/15 text-rating',
+  danger: 'bg-danger/10 text-danger',
+  info: 'bg-brand/10 text-brand-dark',
+  neutral: 'bg-gray-light text-gray-muted',
+  category: 'bg-gray-light text-gray-muted hover:bg-brand-light hover:text-brand-dark transition-colors duration-300',
+  rating: 'bg-rating/10 text-rating',
 };
 
 const sizeClasses: Record<string, string> = {
-  sm: 'px-2 py-0.5 text-xs',
-  md: 'px-3 py-1 text-sm',
+  sm: 'px-2.5 py-0.5 text-xs rounded-lg',
+  md: 'px-3 py-1 text-sm rounded-lg',
 };
 
-export default function Badge({ children, variant = 'neutral', size = 'sm', className = '' }: BadgeProps) {
+export default function Badge({
+  children,
+  variant = 'neutral',
+  size = 'sm',
+  className = '',
+}: BadgeProps) {
   return (
-    <span className={`inline-flex items-center font-medium rounded-full border ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 font-medium ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+    >
+      {variant === 'success' && (
+        <span className="w-1.5 h-1.5 rounded-full bg-brand-dark shrink-0" aria-hidden="true" />
+      )}
       {children}
     </span>
   );
