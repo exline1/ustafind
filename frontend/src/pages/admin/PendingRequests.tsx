@@ -11,8 +11,11 @@ export default function PendingRequests() {
   const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    const users = getAllUsers();
-    setPendingUsers(users.filter((u) => u.role === 'usta_pending'));
+    getAllUsers()
+      .then((users) => {
+        setPendingUsers(users.filter((u) => u.role === 'usta_pending'));
+      })
+      .catch((err) => console.error('Error fetching pending users:', err));
   }, []);
 
   const handleApprove = async (userId: string) => {

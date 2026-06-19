@@ -7,22 +7,39 @@ import Rating from '../components/ui/Rating';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import UnsplashImage from '../components/ui/UnsplashImage';
-import { getUstaById, formatPrice } from '../services/mockData';
+import { formatPrice } from '../services/mockData';
 import { getUstaImage, getGalleryImages } from '../services/unsplashService';
 import { useAuth } from '../context/AuthContext';
+import { apiRequest } from '../services/api';
 
 export default function UstaProfilePage() {
   const { id } = useParams<{ id: string }>();
-  const usta = getUstaById(id || '');
+  const [usta, setUsta] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
 
   useEffect(() => {
-    if (usta) {
-      getGalleryImages(6, usta.id).then(setGalleryUrls);
+    if (id) {
+      setLoading(true);
+      apiRequest(`/ustalar/${id}`)
+        .then((data) => {
+          setUsta(data);
+          getGalleryImages(6, data.id).then(setGalleryUrls);
+        })
+        .catch((err) => console.error('Error fetching usta profile:', err))
+        .finally(() => setLoading(false));
     }
-  }, [usta]);
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!usta) {
     return (

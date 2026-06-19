@@ -13,7 +13,9 @@ export default function AllUsers() {
   const [roleFilter, setRoleFilter] = useState('');
 
   useEffect(() => {
-    setUsers(getAllUsers());
+    getAllUsers()
+      .then(setUsers)
+      .catch((err) => console.error('Error fetching users:', err));
   }, []);
 
   const filtered = users.filter((u) => {

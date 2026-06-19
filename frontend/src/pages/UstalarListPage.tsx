@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MagnifyingGlass, SlidersHorizontal, MapPin, X } from '@phosphor-icons/react';
 import Card from '../components/ui/Card';
@@ -8,14 +8,18 @@ import Select from '../components/ui/Select';
 import Button from '../components/ui/Button';
 import UnsplashImage from '../components/ui/UnsplashImage';
 import StaggerGrid, { StaggerItem } from '../components/layout/StaggerGrid';
-import { mockUstalar, categories, cities } from '../services/mockData';
+import { categories, cities } from '../services/mockData';
 import { getUstaImage } from '../services/unsplashService';
+import { apiRequest } from '../services/api';
+import type { Usta } from '../types';
 
 export default function UstalarListPage() {
   const [searchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || '';
   const filterKey = useRef(0);
 
+  const [ustalar, setUstalar] = useState<Usta[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedCity, setSelectedCity] = useState('');
@@ -24,8 +28,16 @@ export default function UstalarListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 6;
 
+  useEffect(() => {
+    setLoading(true);
+    apiRequest<Usta[]>('/ustalar')
+      .then(setUstalar)
+      .catch((err) => console.error('Error fetching ustalar:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const filtered = useMemo(() => {
-    let result = [...mockUstalar];
+    let result = [...ustalar];
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -44,7 +56,7 @@ export default function UstalarListPage() {
     else if (sortBy === 'experience') result.sort((a, b) => (b.experience || 0) - (a.experience || 0));
     else if (sortBy === 'reviews') result.sort((a, b) => b.reviewCount - a.reviewCount);
     return result;
-  }, [searchQuery, selectedCategory, selectedCity, sortBy]);
+  }, [ustalar, searchQuery, selectedCategory, selectedCity, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
@@ -187,7 +199,11 @@ export default function UstalarListPage() {
           </div>
         )}
 
-        {paginated.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : paginated.length > 0 ? (
           <StaggerGrid animate={shouldStagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginated.map((usta) => (
               <StaggerItem key={usta.id}>

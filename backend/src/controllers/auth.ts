@@ -170,3 +170,21 @@ export async function selectRole(req: AuthenticatedRequest, res: Response) {
     return res.status(500).json({ error: err.message || 'Serverda xatolik' });
   }
 }
+
+export async function getAllUsers(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { data: profiles, error } = await supabaseAdmin
+      .from('profiles')
+      .select('*')
+      .order('registered_at', { ascending: false });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(200).json(profiles);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Serverda xatolik' });
+  }
+}
+

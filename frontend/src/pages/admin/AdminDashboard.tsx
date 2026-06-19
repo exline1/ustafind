@@ -10,7 +10,9 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
-    setUsers(getAllUsers());
+    getAllUsers()
+      .then(setUsers)
+      .catch((err) => console.error('Error fetching admin users:', err));
     const stored = JSON.parse(localStorage.getItem('ustafind_bookings') || '[]');
     setBookings([...mockBookings, ...stored]);
   }, []);
