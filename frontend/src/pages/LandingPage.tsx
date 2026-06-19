@@ -27,9 +27,11 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import Rating from '../components/ui/Rating';
 import UnsplashImage from '../components/ui/UnsplashImage';
-import { mockUstalar, mockEquipment, mockTestimonials, categories, formatPrice } from '../services/mockData';
+import { mockTestimonials, categories, formatPrice } from '../services/mockData';
 import { getHeroImage, getUstaImage, getEquipmentImage } from '../services/unsplashService';
 import { useEffect, useState, useRef } from 'react';
+
+import { apiRequest } from '../services/api';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   Droplets: <Drop className="w-7 h-7" weight="fill" />,
@@ -86,8 +88,21 @@ function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: str
 }
 
 export default function LandingPage() {
-  const featuredUstalar = mockUstalar.slice(0, 4);
-  const featuredEquipment = mockEquipment.slice(0, 3);
+  const [ustalar, setUstalar] = useState<any[]>([]);
+  const [equipment, setEquipment] = useState<any[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      apiRequest('/ustalar').catch(() => []),
+      apiRequest('/equipments').catch(() => []),
+    ]).then(([ustasData, equipmentsData]) => {
+      setUstalar(ustasData);
+      setEquipment(equipmentsData);
+    });
+  }, []);
+
+  const featuredUstalar = ustalar.slice(0, 4);
+  const featuredEquipment = equipment.slice(0, 3);
 
   return (
     <div className="min-h-screen">

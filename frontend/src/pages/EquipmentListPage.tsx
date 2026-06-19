@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MagnifyingGlass, MapPin, Truck, X } from '@phosphor-icons/react';
 import Card from '../components/ui/Card';
@@ -7,8 +7,10 @@ import Select from '../components/ui/Select';
 import Button from '../components/ui/Button';
 import UnsplashImage from '../components/ui/UnsplashImage';
 import StaggerGrid, { StaggerItem } from '../components/layout/StaggerGrid';
-import { mockEquipment, cities, formatPrice } from '../services/mockData';
+import { cities, formatPrice } from '../services/mockData';
 import { getEquipmentImage } from '../services/unsplashService';
+import { apiRequest } from '../services/api';
+import type { Equipment } from '../types';
 
 const equipCategories = [
   { value: 'Qazish texnikasi', label: 'Qazish texnikasi' },
@@ -21,12 +23,22 @@ const equipCategories = [
 
 export default function EquipmentListPage() {
   const filterKey = useRef(0);
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
 
+  useEffect(() => {
+    setLoading(true);
+    apiRequest<Equipment[]>('/equipments')
+      .then(setEquipments)
+      .catch((err) => console.error('Error fetching equipment:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const filtered = useMemo(() => {
-    let result = [...mockEquipment];
+    let result = [...equipments];
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -36,7 +48,7 @@ export default function EquipmentListPage() {
     if (selectedCategory) result = result.filter((e) => e.category === selectedCategory);
     if (selectedCity) result = result.filter((e) => e.city === selectedCity);
     return result;
-  }, [searchQuery, selectedCategory, selectedCity]);
+  }, [equipments, searchQuery, selectedCategory, selectedCity]);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -111,7 +123,11 @@ export default function EquipmentListPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {filtered.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length > 0 ? (
           <StaggerGrid animate={shouldStagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((eq) => (
               <StaggerItem key={eq.id}>

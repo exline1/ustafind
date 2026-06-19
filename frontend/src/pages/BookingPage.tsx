@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CalendarBlank, Clock, MapPin, FileText, CheckCircle } from '@phosphor-icons/react';
 import Card from '../components/ui/Card';
@@ -6,9 +6,9 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Avatar from '../components/ui/Avatar';
-import { getUstaById, formatPrice } from '../services/mockData';
+import { formatPrice } from '../services/mockData';
 import { useAuth } from '../context/AuthContext';
-import type { Booking } from '../types';
+import { apiRequest } from '../services/api';
 
 const timeSlots = [
   '08:00', '09:00', '10:00', '11:00', '12:00',
@@ -19,7 +19,8 @@ const steps = ['Xizmat', 'Sana va vaqt', 'Manzil'];
 
 export default function BookingPage() {
   const { id } = useParams<{ id: string }>();
-  const usta = getUstaById(id || '');
+  const [usta, setUsta] = useState<any>(null);
+  const [loadingUsta, setLoadingUsta] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -31,51 +32,77 @@ export default function BookingPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  if (!usta || !user) {
+  useEffect(() => {
+    if (id) {
+      setLoadingUsta(true);
+      apiRequest(`/ustalar/${id}`)
+        .then((data) => {
+          setUsta(data);
+        })
+        .catch((err) => console.error('Error fetching usta:', err))
+        .finally(() => setLoadingUsta(false));
+    }
+  }, [id]);
+
+  if (loadingUsta || !user) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-brand-dark mb-2">
-            {!user ? 'Avval tizimga kiring' : 'Usta topilmadi'}
-          </h2>
-          <Link to={!user ? '/auth' : '/ustalar'}>
-            <Button>Davom etish</Button>
+          {loadingUsta ? (
+            <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-brand-dark mb-2">Avval tizimga kiring</h2>
+              <Link to="/auth">
+                <Button>Davom etish</Button>
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!usta) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-brand-dark mb-2">Usta topilmadi</h2>
+          <Link to="/ustalar">
+            <Button>Ustalar ro&apos;yxatiga qaytish</Button>
           </Link>
         </div>
       </div>
     );
   }
 
-  const selectedServiceObj = usta.services.find((s) => s.id === selectedService);
+  const selectedServiceObj = usta.services.find((s: any) => s.id === selectedService);
   const activeStep = !selectedService ? 0 : !selectedDate || !selectedTime ? 1 : 2;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedService || !selectedDate || !selectedTime || !address) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-
-    const booking: Booking = {
-      id: 'b-' + Date.now(),
-      clientId: user.id,
-      clientName: user.name,
-      ustaId: usta.id,
-      ustaName: usta.name,
-      serviceType: selectedServiceObj?.name || '',
-      date: selectedDate,
-      time: selectedTime,
-      address,
-      notes,
-      status: 'pending',
-      totalPrice: selectedServiceObj?.price || 0,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-
-    const bookings = JSON.parse(localStorage.getItem('ustafind_bookings') || '[]');
-    bookings.push(booking);
-    localStorage.setItem('ustafind_bookings', JSON.stringify(bookings));
-    setLoading(false);
-    setShowSuccess(true);
+    try {
+      await apiRequest('/bookings', {
+        method: 'POST',
+        body: {
+          ustaId: usta.id,
+          serviceType: selectedServiceObj?.name || '',
+          date: selectedDate,
+          time: selectedTime,
+          address,
+          notes,
+          totalPrice: selectedServiceObj?.price || 0,
+        },
+      });
+      setLoading(false);
+      setShowSuccess(true);
+    } catch (err) {
+      console.error('Error creating booking:', err);
+      alert('Buyurtma qilishda xatolik yuz berdi');
+      setLoading(false);
+    }
   };
 
   if (showSuccess) {

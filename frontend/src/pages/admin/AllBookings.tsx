@@ -3,7 +3,8 @@ import { CalendarBlank } from '@phosphor-icons/react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Select from '../../components/ui/Select';
-import { mockBookings, formatPrice } from '../../services/mockData';
+import { formatPrice } from '../../services/mockData';
+import { apiRequest } from '../../services/api';
 import type { Booking } from '../../types';
 
 export default function AllBookings() {
@@ -11,8 +12,9 @@ export default function AllBookings() {
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('ustafind_bookings') || '[]');
-    setBookings([...mockBookings, ...stored]);
+    apiRequest<Booking[]>('/bookings')
+      .then(setBookings)
+      .catch((err) => console.error('Error fetching admin bookings:', err));
   }, []);
 
   const filtered = bookings.filter((b) => !statusFilter || b.status === statusFilter);

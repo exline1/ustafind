@@ -9,6 +9,7 @@ import {
   updateUserProfile as updateProfile,
   getCurrentUser,
   logoutUser,
+  fetchFreshUser,
 } from '../services/authService';
 
 interface AuthContextType {
@@ -34,8 +35,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = getCurrentUser();
     if (storedUser) {
       setUser(storedUser);
+      fetchFreshUser()
+        .then((freshUser) => {
+          setUser(freshUser);
+        })
+        .catch((err) => {
+          console.warn('Session verification failed, logging out:', err);
+          logoutUser();
+          setUser(null);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

@@ -18,7 +18,8 @@ import Textarea from '../components/ui/Textarea';
 import Select from '../components/ui/Select';
 import Modal from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
-import { mockBookings, formatPrice } from '../services/mockData';
+import { formatPrice } from '../services/mockData';
+import { apiRequest } from '../services/api';
 import type { Booking, Equipment } from '../types';
 
 type DashboardTab = 'profile' | 'bookings' | 'equipment' | 'services';
@@ -39,18 +40,26 @@ export default function DashboardPage() {
   const [eqDailyPrice, setEqDailyPrice] = useState('');
   const [eqCity, setEqCity] = useState('');
 
+  const fetchDashboardData = async () => {
+    if (!user) return;
+    try {
+      const [bookingsData, equipmentsData] = await Promise.all([
+        apiRequest('/bookings').catch(() => []),
+        apiRequest('/equipments').catch(() => []),
+      ]);
+      setBookings(bookingsData);
+      setMyEquipment(equipmentsData.filter((e: any) => e.ownerId === user.id));
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
-    const stored = JSON.parse(localStorage.getItem('ustafind_bookings') || '[]') as Booking[];
-    const mockUserBookings = mockBookings.filter((b) => b.clientId === user.id || b.ustaId === user.id);
-    const localBookings = stored.filter((b) => b.clientId === user.id || b.ustaId === user.id);
-    setBookings([...localBookings, ...mockUserBookings]);
-
-    const storedEq = JSON.parse(localStorage.getItem('ustafind_equipment') || '[]') as Equipment[];
-    setMyEquipment(storedEq.filter((e) => e.ownerId === user.id));
+    fetchDashboardData();
 
     setProfileForm({
       name: user.name || '',
@@ -67,46 +76,56 @@ export default function DashboardPage() {
     setEditingProfile(false);
   };
 
-  const handleAddEquipment = () => {
+  const handleAddEquipment = async () => {
     if (!eqName || !eqCategory || !eqDailyPrice || !eqCity) return;
-    const newEq: Equipment = {
-      id: 'eq-user-' + Date.now(),
-      ownerId: user.id,
-      ownerName: user.name,
-      name: eqName,
-      category: eqCategory,
-      description: eqDescription,
-      specs: {},
-      dailyPrice: parseInt(eqDailyPrice),
-      city: eqCity,
-      images: [],
-      available: true,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    const all = JSON.parse(localStorage.getItem('ustafind_equipment') || '[]');
-    all.push(newEq);
-    localStorage.setItem('ustafind_equipment', JSON.stringify(all));
-    setMyEquipment((prev) => [...prev, newEq]);
-    setShowAddEquipment(false);
-    setEqName('');
-    setEqCategory('');
-    setEqDescription('');
-    setEqDailyPrice('');
-    setEqCity('');
+    try {
+      await apiRequest('/equipments', {
+        method: 'POST',
+        body: {
+          name: eqName,
+          category: eqCategory,
+          description: eqDescription,
+          dailyPrice: Number(eqDailyPrice),
+          city: eqCity,
+        },
+      });
+      setShowAddEquipment(false);
+      setEqName('');
+      setEqCategory('');
+      setEqDescription('');
+      setEqDailyPrice('');
+      setEqCity('');
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error adding equipment:', err);
+      alert('Texnika qo\'shishda xatolik yuz berdi');
+    }
   };
 
-  const handleDeleteEquipment = (eqId: string) => {
-    const all = JSON.parse(localStorage.getItem('ustafind_equipment') || '[]') as Equipment[];
-    const filtered = all.filter((e) => e.id !== eqId);
-    localStorage.setItem('ustafind_equipment', JSON.stringify(filtered));
-    setMyEquipment((prev) => prev.filter((e) => e.id !== eqId));
+  const handleDeleteEquipment = async (eqId: string) => {
+    if (!confirm('Haqiqatan ham bu texnikani o\'chirmoqchisiz?')) return;
+    try {
+      await apiRequest(`/equipments/${eqId}`, {
+        method: 'DELETE',
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error deleting equipment:', err);
+      alert('Texnikani o\'chirishda xatolik yuz berdi');
+    }
   };
 
-  const handleBookingAction = (bookingId: string, action: 'confirmed' | 'cancelled') => {
-    const stored = JSON.parse(localStorage.getItem('ustafind_bookings') || '[]') as Booking[];
-    const updated = stored.map((b) => (b.id === bookingId ? { ...b, status: action } : b));
-    localStorage.setItem('ustafind_bookings', JSON.stringify(updated));
-    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: action } : b)));
+  const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'cancelled') => {
+    try {
+      await apiRequest(`/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        body: { status: action },
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Error updating booking status:', err);
+      alert('Buyurtma holatini o\'zgartirishda xatolik yuz berdi');
+    }
   };
 
   const statusBadge = (status: string) => {

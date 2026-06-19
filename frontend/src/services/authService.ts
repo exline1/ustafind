@@ -98,6 +98,12 @@ export async function getAllUsers(): Promise<User[]> {
   return apiRequest('/auth/users');
 }
 
+export async function fetchFreshUser(): Promise<User> {
+  const data = await apiRequest('/auth/me');
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
+  return data.user;
+}
+
 export function getCurrentUser(): User | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);

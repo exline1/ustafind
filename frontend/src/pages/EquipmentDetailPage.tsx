@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, CalendarBlank, Star, CheckCircle } from '@phosphor-icons/react';
 import Card from '../components/ui/Card';
@@ -8,19 +8,41 @@ import Avatar from '../components/ui/Avatar';
 import Badge from '../components/ui/Badge';
 import Modal from '../components/ui/Modal';
 import UnsplashImage from '../components/ui/UnsplashImage';
-import { getEquipmentById, formatPrice } from '../services/mockData';
+import { formatPrice } from '../services/mockData';
 import { getEquipmentImage } from '../services/unsplashService';
 import { useAuth } from '../context/AuthContext';
+import { apiRequest } from '../services/api';
 
 export default function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const equipment = getEquipmentById(id || '');
+  const [equipment, setEquipment] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showRentalModal, setShowRentalModal] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true);
+      apiRequest(`/equipments/${id}`)
+        .then((data) => {
+          setEquipment(data);
+        })
+        .catch((err) => console.error('Error fetching equipment details:', err))
+        .finally(() => setLoading(false));
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!equipment) {
     return (
@@ -43,30 +65,27 @@ export default function EquipmentDetailPage() {
     setShowRentalModal(true);
   };
 
-  const handleConfirmRental = () => {
+  const handleConfirmRental = async () => {
     if (!startDate || !endDate) return;
     const days = Math.max(
       1,
       Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
     );
-    const rental = {
-      id: 'er-' + Date.now(),
-      equipmentId: equipment.id,
-      equipmentName: equipment.name,
-      renterId: user!.id,
-      renterName: user!.name,
-      ownerId: equipment.ownerId,
-      startDate,
-      endDate,
-      totalPrice: days * equipment.dailyPrice,
-      status: 'pending',
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    const rentals = JSON.parse(localStorage.getItem('ustafind_rentals') || '[]');
-    rentals.push(rental);
-    localStorage.setItem('ustafind_rentals', JSON.stringify(rentals));
-    setShowRentalModal(false);
-    setShowSuccess(true);
+    try {
+      await apiRequest(`/equipments/${equipment.id}/rent`, {
+        method: 'POST',
+        body: {
+          startDate,
+          endDate,
+          totalPrice: days * equipment.dailyPrice,
+        },
+      });
+      setShowRentalModal(false);
+      setShowSuccess(true);
+    } catch (err) {
+      console.error('Error renting equipment:', err);
+      alert('Ijaraga olish so\'rovida xatolik yuz berdi');
+    }
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -110,10 +129,10 @@ export default function EquipmentDetailPage() {
 
               <h3 className="font-semibold text-brand-dark mb-3">Texnik xususiyatlari</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {Object.entries(equipment.specs).map(([key, val]) => (
+                {Object.entries(equipment.specs || {}).map(([key, val]) => (
                   <div key={key} className="flex justify-between p-3 bg-gray-light rounded-xl">
                     <span className="text-sm text-gray-muted">{key}</span>
-                    <span className="text-sm font-semibold text-brand-dark">{val}</span>
+                    <span className="text-sm font-semibold text-brand-dark">{String(val)}</span>
                   </div>
                 ))}
               </div>

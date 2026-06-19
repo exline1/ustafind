@@ -3,22 +3,30 @@ import { Trash, Wrench } from '@phosphor-icons/react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { mockEquipment, formatPrice } from '../../services/mockData';
+import { formatPrice } from '../../services/mockData';
+import { apiRequest } from '../../services/api';
 import type { Equipment } from '../../types';
 
 export default function EquipmentManagement() {
   const [equipment, setEquipment] = useState<Equipment[]>([]);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('ustafind_equipment') || '[]');
-    setEquipment([...mockEquipment, ...stored]);
+    apiRequest<Equipment[]>('/equipments')
+      .then(setEquipment)
+      .catch((err) => console.error('Error fetching admin equipment:', err));
   }, []);
 
-  const handleDelete = (eqId: string) => {
-    const stored = JSON.parse(localStorage.getItem('ustafind_equipment') || '[]') as Equipment[];
-    const updated = stored.filter((e) => e.id !== eqId);
-    localStorage.setItem('ustafind_equipment', JSON.stringify(updated));
-    setEquipment((prev) => prev.filter((e) => e.id !== eqId));
+  const handleDelete = async (eqId: string) => {
+    if (!confirm('Haqiqatan ham bu texnikani o\'chirmoqchisiz?')) return;
+    try {
+      await apiRequest(`/equipments/${eqId}`, {
+        method: 'DELETE',
+      });
+      setEquipment((prev) => prev.filter((e) => e.id !== eqId));
+    } catch (err) {
+      console.error('Error deleting equipment:', err);
+      alert('Texnikani o\'chirishda xatolik yuz berdi');
+    }
   };
 
   return (
@@ -53,11 +61,9 @@ export default function EquipmentManagement() {
                         <Badge variant={eq.available ? 'success' : 'danger'}>{eq.available ? 'Mavjud' : 'Band'}</Badge>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {eq.id.startsWith('eq-user-') && (
-                          <Button size="sm" variant="danger" onClick={() => handleDelete(eq.id)} icon={<Trash className="w-4 h-4" weight="bold" />} aria-label="O'chirish">
-                            O&apos;chirish
-                          </Button>
-                        )}
+                        <Button size="sm" variant="danger" onClick={() => handleDelete(eq.id)} icon={<Trash className="w-4 h-4" weight="bold" />} aria-label="O'chirish">
+                          O&apos;chirish
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -79,11 +85,9 @@ export default function EquipmentManagement() {
                       {eq.available ? 'Mavjud' : 'Band'}
                     </Badge>
                   </div>
-                  {eq.id.startsWith('eq-user-') && (
-                    <Button size="sm" variant="danger" onClick={() => handleDelete(eq.id)} icon={<Trash className="w-4 h-4" weight="bold" />}>
-                      O&apos;chirish
-                    </Button>
-                  )}
+                  <Button size="sm" variant="danger" onClick={() => handleDelete(eq.id)} icon={<Trash className="w-4 h-4" weight="bold" />}>
+                    O&apos;chirish
+                  </Button>
                 </div>
               </Card>
             ))}
